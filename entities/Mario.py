@@ -13,6 +13,10 @@ from traits.go import GoTrait
 from traits.jump import JumpTrait
 from classes.Pause import Pause
 
+#needed for win condition
+from classes.Observer import Observer
+from classes.VictoryScreen import VictoryScreen
+
 spriteCollection = Sprites().spriteCollection
 smallAnimation = Animation(
     [
@@ -33,8 +37,8 @@ bigAnimation = Animation(
     spriteCollection["mario_big_jump"].image,
 )
 
-
-class Mario(EntityBase):
+#mario needs to be the observer for win condition
+class Mario(EntityBase, Observer):
     def __init__(self, x, y, level, screen, dashboard, sound, gravity=0.8):
         super(Mario, self).__init__(x, y, gravity)
         self.camera = Camera(self.rect, self)
@@ -51,6 +55,7 @@ class Mario(EntityBase):
         }
 
         self.levelObj = level
+        self.levelObj.register_observer(self) #for win condition, register mario as observer of level
         self.collision = Collider(self, level)
         self.screen = screen
         self.EntityCollider = EntityCollider(self)
@@ -59,9 +64,21 @@ class Mario(EntityBase):
         self.pause = False
         self.pauseObj = Pause(screen, self, dashboard)
 
+        #for victory screen
+        self.victory = False
+        self.victory_screen = VictoryScreen(screen, dashboard, sound, level.currentLevelName)
+
     def update(self):
         if self.invincibilityFrames > 0:
             self.invincibilityFrames -= 1
+
+        #for victory screen, check if victory is active
+        if self.victory:
+            #updates the victory screen and check if we should return to menu
+            if self.victory_screen.update():
+                self.restart = True
+            return
+        
         self.updateTraits()
         self.moveMario()
         self.camera.move()
@@ -85,6 +102,25 @@ class Mario(EntityBase):
                     self._onCollisionWithBlock(ent)
                 elif ent.type == "Mob":
                     self._onCollisionWithMob(ent, collisionState)
+                #goal, for checking win condition
+                elif ent.type == "Goal":
+                    self._onCollisionWithGoal(ent)
+
+    #for win condition
+    def _onCollisionWithGoal(self, goal):
+        if not self.victory:
+            #stop moveing
+            self.vel.x = 0
+            self.vel.y = 0
+        
+            goal.triggered = True
+            
+            #level is completed
+            self.levelObj.mark_level_complete()
+            
+            #open victory screen
+            self.victory = True
+            self.victory_screen.activate()
 
     def _onCollisionWithItem(self, item):
         self.levelObj.entityList.remove(item)
@@ -186,3 +222,9 @@ class Mario(EntityBase):
                 self.traits['goTrait'].updateAnimation(bigAnimation)
                 self.rect = pygame.Rect(self.rect.x, self.rect.y-32, 32, 64)
                 self.invincibilityFrames = 20
+
+
+    #for win condition, observer
+    def notify(self, event_type, **kwargs):
+        if event_type == "level_complete":
+            pass
