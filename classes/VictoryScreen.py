@@ -24,8 +24,8 @@ class VictoryScreen:
             self.screen.blit(overlay, (0, 0))
             
             #victory message
-            self.dashboard.drawText("LEVEL COMPLETE!", 180, 200, 24)
-            self.dashboard.drawText("X", 320, 250, 36)
+            self.dashboard.drawText("Congratulations!", 180, 200, 24)
+            self.dashboard.drawText("You Won!", 190, 250, 36)
             
             if pygame.time.get_ticks() > self.timeout:
                 self.active = False
