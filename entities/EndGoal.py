@@ -6,7 +6,7 @@ class Goal(pygame.sprite.Sprite):
     def __init__(self, screen, sprite_collection, x, y, level):
         pygame.sprite.Sprite.__init__(self)
         self.sprite_collection = sprite_collection
-        self.image = self.sprite_collection.get("bush_2").image
+        self.image = self.sprite_collection.get("pipeR").image
         self.rect = pygame.Rect(x * 32, y * 32, 32, 64)
         self.screen = screen
         self.x = x
@@ -21,3 +21,4 @@ class Goal(pygame.sprite.Sprite):
                 self.image, 
                 ((self.x + camera.pos.x) * 32, self.y * 32)
             )
+
