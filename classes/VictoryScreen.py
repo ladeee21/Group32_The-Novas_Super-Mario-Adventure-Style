@@ -13,24 +13,20 @@ class VictoryScreen:
         
     def activate(self):
         self.active = True
-        # Play victory sound effect
-        if hasattr(self.sound, 'play_sfx') and hasattr(self.sound, 'victory'):
-            self.sound.play_sfx(self.sound.victory)
-        self.timeout = pygame.time.get_ticks() + 5000  # Display for 5 seconds
+        self.timeout = pygame.time.get_ticks() + 3000  #show screen for 3 seconds
         
     def update(self):
         if self.active:
-            # Draw semi-transparent background
+            #creating the background
             overlay = pygame.Surface((640, 480))
             overlay.set_alpha(200)
             overlay.fill((0, 0, 0))
             self.screen.blit(overlay, (0, 0))
             
-            # Draw victory message
+            #victory message
             self.dashboard.drawText("LEVEL COMPLETE!", 180, 200, 24)
             self.dashboard.drawText("X", 320, 250, 36)
             
-            # Check if timeout has been reached
             if pygame.time.get_ticks() > self.timeout:
                 self.active = False
                 self.return_to_menu = True
