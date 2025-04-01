@@ -134,9 +134,13 @@ class Mario(EntityBase, Observer):
             self.victory_screen.activate()
 #edit-for coin new branch for merging 
     def _onCollisionWithItem(self, item):
-        """Handles collision with items (coins, power-ups, etc.)."""
-        if isinstance(item, EntityBase) and item.type == "Item":
+        #"""Handles collision with items (coins, power-ups, etc.)."""
+        #if isinstance(item, EntityBase) and item.type == "Item":
             self.levelObj.entityList.remove(item)
+            for composite_entity in self.levelObj.entityList:
+                if isinstance(composite_entity, CompositeEntity):
+                    if item in composite_entity.entities: 
+                        composite_entity.remove(item)
             self.dashboard.points += 100
             self.dashboard.coins += 1  # Increment coin count
             self.sound.play_sfx(self.sound.coin)
