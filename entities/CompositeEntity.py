@@ -42,6 +42,8 @@ class CompositeEntity(Entity):
     def update(self, cam):
         for entity in self.entities:
             entity.update(cam)
+            if hasattr(entity, "alive") and not entity.alive:
+                self.remove(entity)
         self.update_rect()  # Update bounding box after movement
 
     def draw(self, screen, camera):

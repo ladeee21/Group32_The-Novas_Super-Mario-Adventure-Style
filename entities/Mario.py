@@ -126,6 +126,10 @@ class Mario(EntityBase, Observer):
 
     def _onCollisionWithItem(self, item):
         self.levelObj.entityList.remove(item)
+        for composite_entity in self.levelObj.entityList:
+            if isinstance(composite_entity, CompositeEntity):
+                if item in composite_entity.entities: 
+                    composite_entity.remove(item)
         self.dashboard.points += 100
         self.dashboard.coins += 1
         self.sound.play_sfx(self.sound.coin)
