@@ -6,6 +6,7 @@ from classes.EntityCollider import EntityCollider
 from classes.Maths import Vec2D
 from entities.EntityBase import EntityBase
 from traits.leftrightwalk import LeftRightWalkTrait
+from entities.CompositeEntity import CompositeEntity
 
 
 class Koopa(EntityBase):
@@ -78,6 +79,8 @@ class Koopa(EntityBase):
 
     def checkEntityCollision(self):
         for ent in self.levelObj.entityList:
+            if isinstance(ent, CompositeEntity):  # Skip CompositeEntity objects
+                continue
             if ent is not self:
                 collisionState = self.EntityCollider.check(ent)
                 if collisionState.isColliding:

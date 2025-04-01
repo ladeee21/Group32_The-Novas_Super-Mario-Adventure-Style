@@ -12,7 +12,7 @@ from traits.bounce import bounceTrait
 from traits.go import GoTrait
 from traits.jump import JumpTrait
 from classes.Pause import Pause
-
+from entities.CompositeEntity import CompositeEntity
 #needed for win condition
 from classes.Observer import Observer
 from classes.VictoryScreen import VictoryScreen
@@ -94,6 +94,8 @@ class Mario(EntityBase, Observer):
 
     def checkEntityCollision(self):
         for ent in self.levelObj.entityList:
+            if isinstance(ent, CompositeEntity):  # Skip CompositeEntity objects
+                continue
             collisionState = self.EntityCollider.check(ent)
             if collisionState.isColliding:
                 if ent.type == "Item":
@@ -124,6 +126,10 @@ class Mario(EntityBase, Observer):
 
     def _onCollisionWithItem(self, item):
         self.levelObj.entityList.remove(item)
+        for composite_entity in self.levelObj.entityList:
+            if isinstance(composite_entity, CompositeEntity):
+                if item in composite_entity.entities: 
+                    composite_entity.remove(item)
         self.dashboard.points += 100
         self.dashboard.coins += 1
         self.sound.play_sfx(self.sound.coin)

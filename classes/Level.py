@@ -10,6 +10,7 @@ from entities.Mushroom import RedMushroom
 from entities.Koopa import Koopa
 from entities.CoinBox import CoinBox
 from entities.RandomBox import RandomBox
+from entities.CompositeEntity import CompositeEntity  # Import CompositeEntity
 
 #new classes needed for win condition implementation
 from classes.Observer import Subject
@@ -25,7 +26,7 @@ class Level(Subject):
         self.screen = screen
         self.level = None
         self.levelLength = 0
-        self.entityList = []
+        self.entityList = CompositeEntity()  # Use CompositeEntity to manage all entities
 
         #added for the win condition implemetation
         self.currentLevelName = ""
@@ -46,12 +47,28 @@ class Level(Subject):
 
     def loadEntities(self, data):
         try:
-            [self.addCoinBox(x, y) for x, y in data["level"]["entities"]["CoinBox"]]
-            [self.addGoomba(x, y) for x, y in data["level"]["entities"]["Goomba"]]
-            [self.addKoopa(x, y) for x, y in data["level"]["entities"]["Koopa"]]
-            [self.addCoin(x, y) for x, y in data["level"]["entities"]["coin"]]
-            [self.addCoinBrick(x, y) for x, y in data["level"]["entities"]["coinBrick"]]
-            [self.addRandomBox(x, y, item) for x, y, item in data["level"]["entities"]["RandomBox"]]
+           # Use CompositeEntity to group entities together
+            coin_box_group = CompositeEntity()
+            goomba_group = CompositeEntity()
+            koopa_group = CompositeEntity()
+            coin_group = CompositeEntity()
+            coin_brick_group = CompositeEntity()
+            random_box_group = CompositeEntity()
+
+            [coin_box_group.add(self.addCoinBox(x, y)) for x, y in data["level"]["entities"]["CoinBox"]]
+            [goomba_group.add(self.addGoomba(x, y)) for x, y in data["level"]["entities"]["Goomba"]]
+            [koopa_group.add(self.addKoopa(x, y)) for x, y in data["level"]["entities"]["Koopa"]]
+            [coin_group.add(self.addCoin(x, y)) for x, y in data["level"]["entities"]["coin"]]
+            [coin_brick_group.add(self.addCoinBrick(x, y)) for x, y in data["level"]["entities"]["coinBrick"]]
+            [random_box_group.add(self.addRandomBox(x, y, item)) for x, y, item in data["level"]["entities"]["RandomBox"]]
+
+            # Now add the groups to the main entity list
+            self.entityList.add(coin_box_group)
+            self.entityList.add(goomba_group)
+            self.entityList.add(koopa_group)
+            self.entityList.add(coin_group)
+            self.entityList.add(coin_brick_group)
+            self.entityList.add(random_box_group)
         except:
             # if no entities in Level
             pass
@@ -91,11 +108,12 @@ class Level(Subject):
                 pygame.Rect(x * 32, y * 32, 32, 32),
             )
 
+   
     def updateEntities(self, cam):
-        for entity in self.entityList:
+         for entity in list(self.entityList.entities):  # Convert to list to avoid modifying during iteration
             entity.update(cam)
-            if entity.alive is None:
-                self.entityList.remove(entity)
+            if hasattr(entity, "alive") and not entity.alive:
+              self.entityList.remove(entity)
 
     def drawLevel(self, camera):
         try:
@@ -161,39 +179,28 @@ class Level(Subject):
 
     def addCoinBox(self, x, y):
         self.level[y][x] = Tile(None, pygame.Rect(x * 32, y * 32 - 1, 32, 32))
-        self.entityList.append(
-            CoinBox(
-                self.screen,
-                self.sprites.spriteCollection,
-                x,
-                y,
-                self.sound,
-                self.dashboard,
-            )
-        )
+        coin_box = CoinBox(
+        self.screen, self.sprites.spriteCollection, x, y, self.sound, self.dashboard
+    )
+        self.entityList.add(coin_box)
+        return coin_box 
 
     def addRandomBox(self, x, y, item):
         self.level[y][x] = Tile(None, pygame.Rect(x * 32, y * 32 - 1, 32, 32))
-        self.entityList.append(
-            RandomBox(
-                self.screen,
-                self.sprites.spriteCollection,
-                x,
-                y,
-                item,
-                self.sound,
-                self.dashboard,
-                self
-            )
-        )
+        random_box = RandomBox(
+        self.screen, self.sprites.spriteCollection, x, y, item, self.sound, self.dashboard, self
+    )
+        self.entityList.add(random_box)
+        return random_box  # Return instance
 
     def addCoin(self, x, y):
-        self.entityList.append(Coin(self.screen, self.sprites.spriteCollection, x, y))
+        coin = Coin(self.screen, self.sprites.spriteCollection, x, y)
+        self.entityList.add(coin)
+        return coin
 
     def addCoinBrick(self, x, y):
         self.level[y][x] = Tile(None, pygame.Rect(x * 32, y * 32 - 1, 32, 32))
-        self.entityList.append(
-            CoinBrick(
+        coin_brick = CoinBrick(
                 self.screen,
                 self.sprites.spriteCollection,
                 x,
@@ -201,32 +208,34 @@ class Level(Subject):
                 self.sound,
                 self.dashboard
             )
-        )
+        self.entityList.add(coin_brick)
+        return coin_brick
+        
 
     def addGoomba(self, x, y):
-        self.entityList.append(
-            Goomba(self.screen, self.sprites.spriteCollection, x, y, self, self.sound)
-        )
+        goomba= Goomba(self.screen, self.sprites.spriteCollection, x, y, self, self.sound)
+        self.entityList.add(goomba)
+        return goomba
 
     def addKoopa(self, x, y):
-        self.entityList.append(
-            Koopa(self.screen, self.sprites.spriteCollection, x, y, self, self.sound)
-        )
+        koopa = Koopa(self.screen, self.sprites.spriteCollection, x, y, self, self.sound)
+        self.entityList.add(koopa)
+        return koopa
 
     def addRedMushroom(self, x, y):
-        self.entityList.append(
-            RedMushroom(self.screen, self.sprites.spriteCollection, x, y, self, self.sound)
-        )
+        mushroom = RedMushroom(self.screen, self.sprites.spriteCollection, x, y, self, self.sound)
+        self.entityList.add(mushroom)
+        return mushroom
 
     
     
     #added for win condition implementation
     def addGoal(self, x, y):
         #add flag to the level end point to show where the goal is
-        self.entityList.append(
-            Goal(self.screen, self.sprites.spriteCollection, x, y, self)
-        )
-        
+        goal = Goal(self.screen, self.sprites.spriteCollection, x, y, self)
+        self.entityList.add(goal)
+        return goal
+
     def mark_level_complete(self):
         #add the current level to completed levels
         self.completed_levels.add(self.currentLevelName)
