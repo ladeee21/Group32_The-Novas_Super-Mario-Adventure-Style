@@ -1,5 +1,8 @@
 import pygame
-
+import sys
+import os
+# Add the project root directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from classes.Animation import Animation
 from classes.Camera import Camera
 from classes.Collider import Collider
@@ -12,7 +15,11 @@ from traits.bounce import bounceTrait
 from traits.go import GoTrait
 from traits.jump import JumpTrait
 from classes.Pause import Pause
+
 from entities.CompositeEntity import CompositeEntity
+
+from classes.GameManager import GameManager  # Import GameManager to handle coins
+
 #needed for win condition
 from classes.Observer import Observer
 from classes.VictoryScreen import VictoryScreen
@@ -63,11 +70,13 @@ class Mario(EntityBase, Observer):
         self.restart = False
         self.pause = False
         self.pauseObj = Pause(screen, self, dashboard)
-
-        #for victory screen
+ # Load saved coin count from GameManager
+        self.dashboard.coins = GameManager().load_coin_count()
+ #for victory screen
         self.victory = False
         self.victory_screen = VictoryScreen(screen, dashboard, sound, level.currentLevelName)
 
+    
     def update(self):
         if self.invincibilityFrames > 0:
             self.invincibilityFrames -= 1
@@ -123,16 +132,17 @@ class Mario(EntityBase, Observer):
             #open victory screen
             self.victory = True
             self.victory_screen.activate()
-
+#edit-for coin new branch for merging 
     def _onCollisionWithItem(self, item):
-        self.levelObj.entityList.remove(item)
-        for composite_entity in self.levelObj.entityList:
-            if isinstance(composite_entity, CompositeEntity):
-                if item in composite_entity.entities: 
-                    composite_entity.remove(item)
-        self.dashboard.points += 100
-        self.dashboard.coins += 1
-        self.sound.play_sfx(self.sound.coin)
+        """Handles collision with items (coins, power-ups, etc.)."""
+        if isinstance(item, EntityBase) and item.type == "Item":
+            self.levelObj.entityList.remove(item)
+            self.dashboard.points += 100
+            self.dashboard.coins += 1  # Increment coin count
+            self.sound.play_sfx(self.sound.coin)
+            # Save the updated coin count using GameManager
+            GameManager().save_coin_count(self.dashboard.coins)  # Pass the coin count here
+
 
     def _onCollisionWithBlock(self, block):
         if not block.triggered:
@@ -234,3 +244,5 @@ class Mario(EntityBase, Observer):
     def notify(self, event_type, **kwargs):
         if event_type == "level_complete":
             pass
+
+     
