@@ -1,6 +1,6 @@
 import json
 import os
-
+#change 
 class CoinMemento:
     """Stores the coin count as a memento."""
     def __init__(self, coin_count):

@@ -126,7 +126,7 @@ class Mario(EntityBase, Observer):
             #open victory screen
             self.victory = True
             self.victory_screen.activate()
-
+#edit-for coin new branch for merging 
     def _onCollisionWithItem(self, item):
         """Handles collision with items (coins, power-ups, etc.)."""
         if isinstance(item, EntityBase) and item.type == "Item":

@@ -1,5 +1,5 @@
 from copy import copy
-
+#edit-for coin new branch for merging 
 from entities.EntityBase import EntityBase
 from classes.GameManager import GameManager  # Import GameManager to manage coins
 
